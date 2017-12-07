@@ -2,6 +2,7 @@ import React from 'react';
 import {
 	View
 	, StyleSheet
+	, Animated
 } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -37,23 +38,29 @@ export default class Sortable extends React.Component {
 	componentWillReceiveProps(nextProps) {
 		_sortableItemLayout = {};
 		_grantItem = undefined;
+
 		this.setState({
-			children: this._cloneChildren(nextProps)
+			children: this._cloneChildren(nextProps),
+			shadowChild: undefined
 		});
 	}
 
+	_shadowLayout = {
+		position: 'absolute',
+		left: new Animated.Value(0),
+		top: new Animated.Value(0),
+		width: new Animated.Value(0),
+		height: new Animated.Value(0)
+	};
+
 	render() {
-		
 		return (
-			<View {...this.props}>
-				{this.state.children}
+			<Animated.View {...this.props}>
+				{[...this.state.children]}
 				{!this.state.shadowChild ? undefined : React.cloneElement(this.state.shadowChild, {
-					style: [this.state.shadowChild.props.style, ZERO_MARGIN, {
-						position: 'absolute'
-						, ...this.state.shadowLayout
-					}]
+					style: [this.state.shadowChild.props.style, ZERO_MARGIN, this._shadowLayout]
 				})}
-			</View>
+			</Animated.View>
 		);
 	}
 
@@ -71,18 +78,17 @@ export default class Sortable extends React.Component {
 		if (shadowChild) {
 			const originalLayout = this._sortableItemLayout[item.props._index];
 
+			this._shadowLayout.left.setValue(originalLayout.x);
+			this._shadowLayout.top.setValue(originalLayout.y);
+			this._shadowLayout.width.setValue(originalLayout.width);
+			this._shadowLayout.height.setValue(originalLayout.height);
+
 			this.setState({
 				shadowChild: React.cloneElement(shadowChild, {
 					key: 'SHADOW_CHILD',
 					_index: -1,
 					pointerEvents: 'none'
 				}),
-				shadowLayout: {
-					left: originalLayout.x,
-					top: originalLayout.y,
-					width: originalLayout.width,
-					height: originalLayout.height
-				},
 				shadowLocation: {
 					left: originalLayout.x,
 					top: originalLayout.y,
@@ -97,11 +103,10 @@ export default class Sortable extends React.Component {
 	_onGrantItemMove = (item, evt)=> {
 		const {left, top, width, height} = this._getShadowItemLayout(item, evt);
 
-		this.setState({
-			shadowLayout: {
-				left, top, width, height
-			}
-		});
+		this._shadowLayout.left.setValue(left);
+		this._shadowLayout.top.setValue(top);
+		this._shadowLayout.width.setValue(width);
+		this._shadowLayout.height.setValue(height);
 	}
 
 	/**
@@ -180,7 +185,7 @@ export default class Sortable extends React.Component {
 	}
 
 	_cloneChildren(props) {
-		const children = Array.isArray(this.props.children) ? this.props.children : this.props.children ? [this.props.children] : [];
+		const children = Array.isArray(props.children) ? props.children : props.children ? [props.children] : [];
 		return children.map((child, index)=> React.cloneElement(child, {
 			_index: index,
 			_onSortableItemLayout: this._onSortableItemLayout,
@@ -212,7 +217,7 @@ export default class Sortable extends React.Component {
 class Item extends React.Component {
 	render() {
 		return (
-			<View {...this.props}
+			<Animated.View {...this.props}
 				accessible={this.props.accessible !== false}
         accessibilityLabel={this.props.accessibilityLabel}
         accessibilityComponentType={this.props.accessibilityComponentType}
@@ -231,7 +236,7 @@ class Item extends React.Component {
         onResponderRelease={this._touchableHandleResponderRelease}
       >
         {this.props.children}
-			</View>
+			</Animated.View>
 		);
 	}
 
