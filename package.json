@@ -1,0 +1,19 @@
+{
+  "name": "react-native-sortable",
+  "version": "0.1.0",
+  "description": "Sortable components for react-native.",
+  "main": "sortable.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "sortable",
+    "react-native"
+  ],
+  "peerDependencies": {
+    "react": ">= 16.0.0",
+    "react": ">= 0.50.0"
+  },
+  "author": "程巍巍",
+  "license": "Apache-2.0"
+}
