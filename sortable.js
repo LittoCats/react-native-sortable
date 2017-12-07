@@ -3,6 +3,7 @@ import {
 	View
 	, StyleSheet
 	, Animated
+	, LayoutAnimation
 } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -16,6 +17,8 @@ const ZERO_MARGIN = StyleSheet.create({zero: {
 	marginVertical: 0,
 	marginHorizontal: 0
 }}).zero;
+
+const AnimationDuration = 192;
 
 export default class Sortable extends React.Component {
 
@@ -173,15 +176,25 @@ export default class Sortable extends React.Component {
 
 		
 		// TODO： 暂时，在没有 回调方法，不进行排序
-		const shouldUpdate = isLocated && newIndex !== undefined && oldIndex !== undefined && this.props.onChangeChildIndex;
+		const shouldUpdate = isLocated && newIndex !== undefined && oldIndex !== undefined;
 
 		!this.props.onChangeChildIndex && console.warn('Sortable 需要属情 onChangeChildIndex 才会执行排序');
+		
+		LayoutAnimation.configureNext(LayoutAnimation.create(
+			AnimationDuration,
+			LayoutAnimation.Types.linear,
+			LayoutAnimation.Properties.opacity
+		));
+
 		// 释放 shadowChild
 		this.setState({
-			
 			children: shouldUpdate ? sortedChildren : this.state.children,
 			shadowChild: undefined
-		}, ()=> this.props.onChangeChildIndex && shouldUpdate && this.props.onChangeChildIndex({oldIndex, newIndex}))
+		}, ()=> {
+			shouldUpdate && setTimeout(()=> {
+				this.props.onChangeChildIndex && this.props.onChangeChildIndex({oldIndex, newIndex})
+			}, AnimationDuration)
+		})
 	}
 
 	_cloneChildren(props) {
