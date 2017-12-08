@@ -175,11 +175,12 @@ export default class Sortable extends React.Component {
 		});
 
 		
-		// TODO： 暂时，在没有 回调方法，不进行排序
+		// 在没有找到新位置与老位置时，不更新界面
 		const shouldUpdate = isLocated && newIndex !== undefined && oldIndex !== undefined;
 
 		!this.props.onChangeChildIndex && console.warn('Sortable 需要属情 onChangeChildIndex 才会执行排序');
 		
+		// 设置排序到，更新到新位置的动画
 		LayoutAnimation.configureNext(LayoutAnimation.create(
 			AnimationDuration,
 			LayoutAnimation.Types.linear,
@@ -187,10 +188,12 @@ export default class Sortable extends React.Component {
 		));
 
 		// 释放 shadowChild
+
 		this.setState({
 			children: shouldUpdate ? sortedChildren : this.state.children,
 			shadowChild: undefined
 		}, ()=> {
+			// 位置变化的事件回调，需要延迟到动画结束后进行
 			shouldUpdate && setTimeout(()=> {
 				this.props.onChangeChildIndex && this.props.onChangeChildIndex({oldIndex, newIndex})
 			}, AnimationDuration)
